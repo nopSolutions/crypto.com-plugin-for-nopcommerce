@@ -1,0 +1,138 @@
+﻿@model ConfigurationModel
+
+@{
+    Layout = "_ConfigurePlugin";
+}
+
+<script>
+    $(document).ready(function () {
+        $('#@Html.IdFor(model => model.UseSandbox)').click(toggleUseSandbox);
+        toggleUseSandbox();
+    });
+    function toggleUseSandbox() {
+        if ($('#@Html.IdFor(model => model.UseSandbox)').is(':checked')) {
+            $('#liveSecretKey').hide();
+            $('#livePublishableKey').hide();
+            $('#liveWebHookSignatureSecretKey').hide();
+            $('#sandboxSecretKey').show();
+            $('#sandboxPublishableKey').show();
+            $('#sandboxWebHookSignatureSecretKey').show();
+        } else {
+            $('#liveSecretKey').show();
+            $('#livePublishableKey').show();
+            $('#liveWebHookSignatureSecretKey').show();
+            $('#sandboxSecretKey').hide();
+            $('#sandboxPublishableKey').hide();
+            $('#sandboxWebHookSignatureSecretKey').hide();
+        }
+    }
+</script>
+
+@await Component.InvokeAsync("StoreScopeConfiguration")
+
+<form asp-controller="CryptoConfiguration" asp-action="Configure" method="post">
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @Html.Raw(string.Format(T("Plugins.Payments.Crypto.Instructions").Text, Url.RouteUrl(Defaults.WebHooks.RouteName, null, webHelper.CurrentRequestProtocol)))
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="UseSandbox_OverrideForStore" asp-input="UseSandbox" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="UseSandbox" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="UseSandbox" />
+                        <span asp-validation-for="UseSandbox"></span>
+                    </div>
+                </div>
+                <nop-nested-setting asp-for="UseSandbox">
+                    <div class="form-group" id="sandboxSecretKey">
+                        <div class="col-md-3">
+                            <nop-override-store-checkbox asp-for="SandboxSecretKey_OverrideForStore" asp-input="SandboxSecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                            <nop-label asp-for="SandboxSecretKey" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-editor asp-for="SandboxSecretKey" asp-required="true" />
+                            <span asp-validation-for="SandboxSecretKey"></span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="sandboxPublishableKey">
+                        <div class="col-md-3">
+                            <nop-override-store-checkbox asp-for="SandboxPublishableKey_OverrideForStore" asp-input="SandboxPublishableKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                            <nop-label asp-for="SandboxPublishableKey" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-editor asp-for="SandboxPublishableKey" asp-required="true" />
+                            <span asp-validation-for="SandboxPublishableKey"></span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="sandboxWebHookSignatureSecretKey">
+                        <div class="col-md-3">
+                            <nop-override-store-checkbox asp-for="SandboxWebHookSignatureSecretKey_OverrideForStore" asp-input="SandboxWebHookSignatureSecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                            <nop-label asp-for="SandboxWebHookSignatureSecretKey" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-editor asp-for="SandboxWebHookSignatureSecretKey" asp-required="true" />
+                            <span asp-validation-for="SandboxWebHookSignatureSecretKey"></span>
+                        </div>
+                    </div>
+                </nop-nested-setting>
+                <div class="form-group" id="liveSecretKey">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="SecretKey_OverrideForStore" asp-input="SecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="SecretKey" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="SecretKey" />
+                        <span asp-validation-for="SecretKey"></span>
+                    </div>
+                </div>
+                <div class="form-group" id="livePublishableKey">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="PublishableKey_OverrideForStore" asp-input="PublishableKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="PublishableKey" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="PublishableKey" />
+                        <span asp-validation-for="PublishableKey"></span>
+                    </div>
+                </div>
+                <div class="form-group" id="liveWebHookSignatureSecretKey">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="WebHookSignatureSecretKey_OverrideForStore" asp-input="WebHookSignatureSecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="WebHookSignatureSecretKey" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="WebHookSignatureSecretKey" asp-required="true" />
+                        <span asp-validation-for="WebHookSignatureSecretKey"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="AdditionalFee_OverrideForStore" asp-input="AdditionalFee" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="AdditionalFee" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="AdditionalFee" />
+                        <span asp-validation-for="AdditionalFee"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="AdditionalFeePercentage_OverrideForStore" asp-input="AdditionalFeePercentage" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="AdditionalFeePercentage" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="AdditionalFeePercentage" />
+                        <span asp-validation-for="AdditionalFeePercentage"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-9 col-md-offset-3">
+                        <input type="submit" name="save" class="btn bg-primary" value="@T("Admin.Common.Save")" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

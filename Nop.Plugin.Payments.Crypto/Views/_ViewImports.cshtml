@@ -1,0 +1,19 @@
+﻿@inherits Nop.Web.Framework.Mvc.Razor.NopRazorPage<TModel>
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, Nop.Web.Framework
+
+@inject CryptoPaymentSettings cryptoPaymentSettings
+@inject OrderSettings orderSettings
+@inject IWebHelper webHelper
+
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@using System.Text.Encodings.Web
+
+@using Nop.Core
+@using Nop.Core.Domain.Orders
+@using Nop.Web.Framework.UI
+@using Nop.Web.Framework.Extensions
+
+@using Nop.Plugin.Payments.Crypto
+@using Nop.Plugin.Payments.Crypto.Models
