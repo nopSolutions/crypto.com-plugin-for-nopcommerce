@@ -83,7 +83,7 @@
                         <nop-label asp-for="SecretKey" />
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="SecretKey" />
+                        <nop-editor asp-for="SecretKey" asp-required="true" />
                         <span asp-validation-for="SecretKey"></span>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
                         <nop-label asp-for="PublishableKey" />
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="PublishableKey" />
+                        <nop-editor asp-for="PublishableKey" asp-required="true" />
                         <span asp-validation-for="PublishableKey"></span>
                     </div>
                 </div>

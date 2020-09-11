@@ -1,5 +1,8 @@
-﻿using FluentValidation;
+﻿using System;
+using FluentValidation;
+using Nop.Core;
 using Nop.Plugin.Payments.Crypto.Models;
+using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Web.Framework.Validators;
 
@@ -12,34 +15,42 @@ namespace Nop.Plugin.Payments.Crypto.Validators
     {
         #region Ctor
 
-        public ConfigurationModelValidator(ILocalizationService localizationService)
+        public ConfigurationModelValidator(
+            ISettingService settingService,
+            IStoreContext storeContext,
+            ILocalizationService localizationService)
         {
+            var storeScope = storeContext.ActiveStoreScopeConfiguration;
+            var settings = settingService.LoadSetting<CryptoPaymentSettings>(storeScope);
+
+            bool isSandbox(ConfigurationModel model) => model.UseSandbox || (settings.UseSandbox && !model.UseSandbox_OverrideForStore && storeScope > 0);
+
             RuleFor(model => model.SecretKey)
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Plugins.Payments.Crypto.Fields.SecretKey.Required"))
-                .When(model => !model.UseSandbox);
+                .When(model => !isSandbox(model));
             RuleFor(model => model.SandboxSecretKey)
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Plugins.Payments.Crypto.Fields.SandboxSecretKey.Required"))
-                .When(model => model.UseSandbox);
+                .When(model => isSandbox(model));
 
             RuleFor(model => model.PublishableKey)
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Plugins.Payments.Crypto.Fields.PublishableKey.Required"))
-                .When(model => !model.UseSandbox);
+                .When(model => !isSandbox(model));
             RuleFor(model => model.SandboxPublishableKey)
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Plugins.Payments.Crypto.Fields.SandboxPublishableKey.Required"))
-                .When(model => model.UseSandbox);
+                .When(model => isSandbox(model));
 
             RuleFor(model => model.WebHookSignatureSecretKey)
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Plugins.Payments.Crypto.Fields.WebHookSignatureSecretKey.Required"))
-                .When(model => !model.UseSandbox);
+                .When(model => !isSandbox(model));
             RuleFor(model => model.SandboxWebHookSignatureSecretKey)
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Plugins.Payments.Crypto.Fields.SandboxWebHookSignatureSecretKey.Required"))
-                .When(model => model.UseSandbox);
+                .When(model => isSandbox(model));
 
             RuleFor(model => model.AdditionalFee)
                 .GreaterThanOrEqualTo(0)

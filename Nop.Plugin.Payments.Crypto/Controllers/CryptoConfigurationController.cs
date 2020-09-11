@@ -104,16 +104,13 @@ namespace Nop.Plugin.Payments.Crypto.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();
 
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
-                return AccessDeniedView();
-
             if (!ModelState.IsValid)
                 return Configure();
 
             var storeScope = _storeContext.ActiveStoreScopeConfiguration;
             var settings = _settingService.LoadSetting<CryptoPaymentSettings>(storeScope);
 
-            if ((settings.UseSandbox && !model.UseSandbox_OverrideForStore) || model.UseSandbox)
+            if (model.UseSandbox || (settings.UseSandbox && !model.UseSandbox_OverrideForStore && storeScope > 0))
             {
                 settings.SecretKey = model.SandboxSecretKey;
                 settings.PublishableKey = model.SandboxPublishableKey;

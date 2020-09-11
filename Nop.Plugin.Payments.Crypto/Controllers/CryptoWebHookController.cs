@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Nop.Plugin.Payments.Crypto.Models;
 using Nop.Plugin.Payments.Crypto.Services;
-using Nop.Web.Framework.Controllers;
 
 namespace Nop.Plugin.Payments.Crypto.Controllers
 {
-    public class CryptoWebHookController : BasePluginController
+    public class CryptoWebHookController : Controller
     {
         #region Fields
 
