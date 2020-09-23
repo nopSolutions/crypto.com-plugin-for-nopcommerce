@@ -103,7 +103,7 @@ namespace Nop.Plugin.Payments.Crypto.Services
                 var subTotal = _orderTotalCalculationService.GetShoppingCartTotal(cart);
 
                 request.Amount = subTotal.HasValue
-                    ? (int)subTotal.Value * 100
+                    ? (int)(subTotal.Value * 100)
                     : 0;
             }
 

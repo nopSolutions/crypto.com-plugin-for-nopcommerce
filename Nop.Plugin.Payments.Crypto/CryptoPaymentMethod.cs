@@ -166,7 +166,7 @@ namespace Nop.Plugin.Payments.Crypto
             var refundRequest = new CreateRefundRequest
             {
                 PaymentId = Guid.Parse(refundPaymentRequest.Order.CaptureTransactionId),
-                Amount = (int)refundPaymentRequest.AmountToRefund * 100
+                Amount = (int)(refundPaymentRequest.AmountToRefund * 100)
             };
 
             try
