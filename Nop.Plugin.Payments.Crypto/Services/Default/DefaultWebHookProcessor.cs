@@ -64,7 +64,7 @@ namespace Nop.Plugin.Payments.Crypto.Services
             using var streamReader = new StreamReader(httpRequest.Body);
             var rawBody = await streamReader.ReadToEndAsync();
 
-            if (CanProcess(httpRequest, rawBody))
+            if (await CanProcessAsync(httpRequest, rawBody))
             {
                 WebHookRequest request = null;
                 try
@@ -73,7 +73,7 @@ namespace Nop.Plugin.Payments.Crypto.Services
                 }
                 catch (Exception exception)
                 {
-                    _logger.Error($"{Defaults.SystemName}: Invalid the web hook request deserialization.", exception);
+                    await _logger.ErrorAsync($"{Defaults.SystemName}: Invalid the web hook request deserialization.", exception);
                 }
 
                 if (request?.Data?.Object != null)
@@ -101,10 +101,10 @@ namespace Nop.Plugin.Payments.Crypto.Services
                     if (!Guid.TryParse(paymentResponse.OrderId, out var orderGuid))
                         return;
 
-                    var order = _orderService.GetOrderByGuid(orderGuid);
+                    var order = await _orderService.GetOrderByGuidAsync(orderGuid);
                     if (order != null)
                     {
-                        var refundIds = _genericAttributeService.GetAttribute<List<string>>(order, Defaults.RefundIdAttributeName)
+                        var refundIds = await _genericAttributeService.GetAttributeAsync<List<string>>(order, Defaults.RefundIdAttributeName)
                             ?? new List<string>();
                         var refundId = refundResponse.Id.ToString();
                         if (!refundIds.Contains(refundId))
@@ -112,27 +112,27 @@ namespace Nop.Plugin.Payments.Crypto.Services
                             if (paymentResponse.Amount == refundResponse.Amount)
                             {
                                 if (_orderProcessingService.CanRefundOffline(order))
-                                    _orderProcessingService.RefundOffline(order);
+                                    await _orderProcessingService.RefundOfflineAsync(order);
                             }
                             else
                             {
                                 if (_orderProcessingService.CanPartiallyRefundOffline(order, refundResponse.Amount / 100))
-                                    _orderProcessingService.PartiallyRefundOffline(order, refundResponse.Amount / 100);
+                                    await _orderProcessingService.PartiallyRefundOfflineAsync(order, refundResponse.Amount / 100);
                             }
 
                             refundIds.Add(refundId);
-                            _genericAttributeService.SaveAttribute(order, Defaults.RefundIdAttributeName, refundIds);
+                            await _genericAttributeService.SaveAttributeAsync(order, Defaults.RefundIdAttributeName, refundIds);
                         }
                     }
                 }
             }
             catch (ApiException exception)
             {
-                _logger.Error($"{Defaults.SystemName}: {exception.Message}", exception);
+                await _logger.ErrorAsync($"{Defaults.SystemName}: {exception.Message}", exception);
             }
         }
 
-        protected virtual bool CanProcess(HttpRequest httpRequest, string rawBody)
+        protected virtual async Task<bool> CanProcessAsync(HttpRequest httpRequest, string rawBody)
         {
             if (!httpRequest.Headers.TryGetValue(Defaults.WebHooks.SignatureHeaderName, out var signature))
                 return false;
@@ -161,7 +161,7 @@ namespace Nop.Plugin.Payments.Crypto.Services
             }
             catch (Exception exception)
             {
-                _logger.Error($"{Defaults.SystemName}: Invalid signature verification. Make sure that the correct 'Web hook signature secret' is specified in the plugin settings.", exception);
+                await _logger.ErrorAsync($"{Defaults.SystemName}: Invalid signature verification. Make sure that the correct 'Web hook signature secret' is specified in the plugin settings.", exception);
             }
 
             return false;

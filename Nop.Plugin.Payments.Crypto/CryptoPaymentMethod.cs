@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -78,10 +79,12 @@ namespace Nop.Plugin.Payments.Crypto
         /// Process a payment
         /// </summary>
         /// <param name="processPaymentRequest">Payment info required for an order processing</param>
-        /// <returns>Process payment result</returns>
-        public ProcessPaymentResult ProcessPayment(ProcessPaymentRequest processPaymentRequest)
+        /// A task that represents the asynchronous operation
+        /// The task result contains the process payment result
+        /// </returns>
+        public async Task<ProcessPaymentResult> ProcessPaymentAsync(ProcessPaymentRequest processPaymentRequest)
         {
-            var paymentIdKey = _localizationService.GetResource("Plugins.Payments.Crypto.PaymentId");
+            var paymentIdKey = await _localizationService.GetResourceAsync("Plugins.Payments.Crypto.PaymentId");
             if (!processPaymentRequest.CustomValues.TryGetValue(paymentIdKey, out var rawPaymentId))
                 throw new NopException("Failed to get the Crypto payment id");
 
@@ -102,7 +105,7 @@ namespace Nop.Plugin.Payments.Crypto
             }
             catch (ApiException exception)
             {
-                _logger.Error($"{Defaults.SystemName}: {exception.Message}", exception);
+                await _logger.ErrorAsync($"{Defaults.SystemName}: {exception.Message}", exception);
             }
 
             return new ProcessPaymentResult { Errors = new[] { "Failed to get the Crypto payment id" } };
@@ -112,53 +115,63 @@ namespace Nop.Plugin.Payments.Crypto
         /// Post process payment (used by payment gateways that require redirecting to a third-party URL)
         /// </summary>
         /// <param name="postProcessPaymentRequest">Payment info required for an order processing</param>
-        public void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest)
+        /// <returns>A task that represents the asynchronous operation</returns>
+        public Task PostProcessPaymentAsync(PostProcessPaymentRequest postProcessPaymentRequest)
         {
-            
+            //do nothing
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Returns a value indicating whether payment method should be hidden during checkout
         /// </summary>
         /// <param name="cart">Shopping cart</param>
-        /// <returns>true - hide; false - display.</returns>
-        public bool HidePaymentMethod(IList<ShoppingCartItem> cart)
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the rue - hide; false - display.
+        /// </returns>
+        public Task<bool> HidePaymentMethodAsync(IList<ShoppingCartItem> cart)
         {
             //you can put any logic here
             //for example, hide this payment method if all products in the cart are downloadable
             //or hide this payment method if current customer is from certain country
-            return false;
+            return Task.FromResult(false);
         }
 
         /// <summary>
         /// Gets additional handling fee
         /// </summary>
         /// <param name="cart">Shopping cart</param>
-        /// <returns>Additional handling fee</returns>
-        public decimal GetAdditionalHandlingFee(IList<ShoppingCartItem> cart)
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the additional handling fee
+        /// </returns>
+        public async Task<decimal> GetAdditionalHandlingFeeAsync(IList<ShoppingCartItem> cart)
         {
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
-            return _paymentService.CalculateAdditionalFee(cart, _cryptoPaymentSettings.AdditionalFee, _cryptoPaymentSettings.AdditionalFeePercentage);
+            return await _paymentService.CalculateAdditionalFeeAsync(cart, _cryptoPaymentSettings.AdditionalFee, _cryptoPaymentSettings.AdditionalFeePercentage);
         }
 
         /// <summary>
         /// Captures payment
         /// </summary>
         /// <param name="capturePaymentRequest">Capture payment request</param>
-        /// <returns>Capture payment result</returns>
-        public CapturePaymentResult Capture(CapturePaymentRequest capturePaymentRequest)
+        /// <returns> A task that represents the asynchronous operation
+        /// The task result contains the capture payment result
+        /// </returns>
+        public Task<CapturePaymentResult> CaptureAsync(CapturePaymentRequest capturePaymentRequest)
         {
-            return new CapturePaymentResult { Errors = new[] { "Capture method not supported" } };
+            return Task.FromResult(new CapturePaymentResult { Errors = new[] { "Capture method not supported" } });
         }
 
         /// <summary>
         /// Refunds a payment
         /// </summary>
         /// <param name="refundPaymentRequest">Request</param>
-        /// <returns>Result</returns>
-        public RefundPaymentResult Refund(RefundPaymentRequest refundPaymentRequest)
+        /// <returns>The asynchronous task whose result contains the Refund payment result</returns>
+        public async Task<RefundPaymentResult> RefundAsync(RefundPaymentRequest refundPaymentRequest)
         {
             if (refundPaymentRequest == null)
                 throw new ArgumentNullException(nameof(refundPaymentRequest));
@@ -175,12 +188,12 @@ namespace Nop.Plugin.Payments.Crypto
                 if (refundResponse == null)
                     return new RefundPaymentResult { Errors = new[] { "No refund response" } };
 
-                var refundIds = _genericAttributeService.GetAttribute<List<string>>(refundPaymentRequest.Order, Defaults.RefundIdAttributeName)
+                var refundIds = await _genericAttributeService.GetAttributeAsync<List<string>>(refundPaymentRequest.Order, Defaults.RefundIdAttributeName)
                     ?? new List<string>();
                 var refundId = refundResponse.Id.ToString();
                 if (!refundIds.Contains(refundId))
                     refundIds.Add(refundId);
-                _genericAttributeService.SaveAttribute(refundPaymentRequest.Order, Defaults.RefundIdAttributeName, refundIds);
+                await _genericAttributeService.SaveAttributeAsync(refundPaymentRequest.Order, Defaults.RefundIdAttributeName, refundIds);
 
                 return new RefundPaymentResult
                 {
@@ -191,7 +204,7 @@ namespace Nop.Plugin.Payments.Crypto
             }
             catch (ApiException exception)
             {
-                _logger.Error($"{Defaults.SystemName}: {exception.Message}", exception);
+                await _logger.ErrorAsync($"{Defaults.SystemName}: {exception.Message}", exception);
                 return new RefundPaymentResult { Errors = new[] { exception.Message } };
             }
         }
@@ -200,66 +213,78 @@ namespace Nop.Plugin.Payments.Crypto
         /// Voids a payment
         /// </summary>
         /// <param name="voidPaymentRequest">Request</param>
-        /// <returns>Result</returns>
-        public VoidPaymentResult Void(VoidPaymentRequest voidPaymentRequest)
+        /// <returns>The asynchronous task whose result contains the Void payment result</returns>
+        public Task<VoidPaymentResult> VoidAsync(VoidPaymentRequest voidPaymentRequest)
         {
-            return new VoidPaymentResult { Errors = new[] { "Void method not supported" } };
+            return Task.FromResult(new VoidPaymentResult { Errors = new[] { "Void method not supported" } });
         }
 
         /// <summary>
         /// Process recurring payment
         /// </summary>
         /// <param name="processPaymentRequest">Payment info required for an order processing</param>
-        /// <returns>Process payment result</returns>
-        public ProcessPaymentResult ProcessRecurringPayment(ProcessPaymentRequest processPaymentRequest)
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the process payment result
+        /// </returns>
+        public Task<ProcessPaymentResult> ProcessRecurringPaymentAsync(ProcessPaymentRequest processPaymentRequest)
         {
-            return new ProcessPaymentResult { Errors = new[] { "Recurring payment not supported" } };
+            return Task.FromResult(new ProcessPaymentResult { Errors = new[] { "Recurring payment not supported" } });
         }
 
         /// <summary>
         /// Cancels a recurring payment
         /// </summary>
         /// <param name="cancelPaymentRequest">Request</param>
-        /// <returns>Result</returns>
-        public CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest)
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the result
+        /// </returns>
+        public Task<CancelRecurringPaymentResult> CancelRecurringPaymentAsync(CancelRecurringPaymentRequest cancelPaymentRequest)
         {
-            return new CancelRecurringPaymentResult { Errors = new[] { "Recurring payment not supported" } };
+            return Task.FromResult(new CancelRecurringPaymentResult { Errors = new[] { "Recurring payment not supported" } });
         }
 
         /// <summary>
         /// Gets a value indicating whether customers can complete a payment after order is placed but not completed (for redirection payment methods)
         /// </summary>
         /// <param name="order">Order</param>
-        /// <returns>Result</returns>
-        public bool CanRePostProcessPayment(Order order)
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the result
+        /// </returns>
+        public Task<bool> CanRePostProcessPaymentAsync(Order order)
         {
             if (order == null)
                 throw new ArgumentNullException(nameof(order));
 
-            return false;
+            return Task.FromResult(false);
         }
 
         /// <summary>
         /// Validate payment form
         /// </summary>
         /// <param name="form">The parsed form values</param>
-        /// <returns>List of validating errors</returns>
-        public IList<string> ValidatePaymentForm(IFormCollection form)
+        /// <returns>The asynchronous task whose result contains the List of validating errors</returns>
+        public Task<IList<string>> ValidatePaymentFormAsync(IFormCollection form)
         {
-            return new List<string>();
+            return Task.FromResult<IList<string>>(new List<string>());
         }
 
         /// <summary>
         /// Get payment information
         /// </summary>
         /// <param name="form">The parsed form values</param>
-        /// <returns>Payment info holder</returns>
-        public ProcessPaymentRequest GetPaymentInfo(IFormCollection form)
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the payment info holder
+        /// </returns>
+        public Task<ProcessPaymentRequest> GetPaymentInfoAsync(IFormCollection form)
         {
             if (form == null)
                 throw new ArgumentNullException(nameof(form));
 
-            return _actionContextAccessor.ActionContext.HttpContext.Session.Get<ProcessPaymentRequest>(Defaults.PaymentRequestSessionKey);
+            return Task.FromResult(_actionContextAccessor.ActionContext.HttpContext.Session.Get<ProcessPaymentRequest>(Defaults.PaymentRequestSessionKey));
         }
 
         /// <summary>
@@ -279,15 +304,27 @@ namespace Nop.Plugin.Payments.Crypto
             return Defaults.PAYMENT_INFO_VIEW_COMPONENT_NAME;
         }
 
-        public IList<string> GetWidgetZones()
+        /// <summary>
+        /// Gets widget zones where this widget should be rendered
+        /// </summary>
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the widget zones
+        /// </returns>
+        public Task<IList<string>> GetWidgetZonesAsync()
         {
-            return new List<string>
+            return Task.FromResult<IList<string>>(new List<string>
             {
                 PublicWidgetZones.CheckoutPaymentInfoBottom,
                 PublicWidgetZones.OpcContentBefore,
-            };
+            });
         }
 
+        /// <summary>
+        /// Gets a name of a view component for displaying widget
+        /// </summary>
+        /// <param name="widgetZone">Name of the widget zone</param>
+        /// <returns>View component name</returns>
         public string GetWidgetViewComponentName(string widgetZone)
         {
             if (widgetZone == null)
@@ -305,20 +342,21 @@ namespace Nop.Plugin.Payments.Crypto
         /// <summary>
         /// Install the plugin
         /// </summary>
-        public override void Install()
+        /// <returns>A task that represents the asynchronous operation</returns>
+        public override async Task InstallAsync()
         {
             if (!_widgetSettings.ActiveWidgetSystemNames.Contains(Defaults.SystemName))
             {
                 _widgetSettings.ActiveWidgetSystemNames.Add(Defaults.SystemName);
-                _settingService.SaveSetting(_widgetSettings);
+                await _settingService.SaveSettingAsync(_widgetSettings);
             }
 
-            _settingService.SaveSetting(new CryptoPaymentSettings
+            await _settingService.SaveSettingAsync(new CryptoPaymentSettings
             {
                 UseSandbox = true
             });
 
-            _localizationService.AddPluginLocaleResource(new Dictionary<string, string>
+            await _localizationService.AddLocaleResourceAsync(new Dictionary<string, string>
             {
                 ["Plugins.Payments.Crypto.Fields.AdditionalFee"] = "Additional fee",
                 ["Plugins.Payments.Crypto.Fields.AdditionalFee.Hint"] = "Enter additional fee to charge your customers.",
@@ -360,25 +398,35 @@ namespace Nop.Plugin.Payments.Crypto
                 ["Plugins.Payments.Crypto.Payment.Successful"] = "We have received your payment. Thanks!"
             });
 
-            base.Install();
+            await base.InstallAsync();
         }
 
         /// <summary>
         /// Uninstall the plugin
         /// </summary>
-        public override void Uninstall()
+        /// <returns>A task that represents the asynchronous operation</returns>
+        public override async Task UninstallAsync()
         {
             if (_widgetSettings.ActiveWidgetSystemNames.Contains(Defaults.SystemName))
             {
                 _widgetSettings.ActiveWidgetSystemNames.Remove(Defaults.SystemName);
-                _settingService.SaveSetting(_widgetSettings);
+                await _settingService.SaveSettingAsync(_widgetSettings);
             }
 
-            _settingService.DeleteSetting<CryptoPaymentSettings>();
+            await _settingService.DeleteSettingAsync<CryptoPaymentSettings>();
 
-            _localizationService.DeletePluginLocaleResources("Plugins.Payments.Crypto");
+            await _localizationService.DeleteLocaleResourcesAsync("Plugins.Payments.Crypto");
 
-            base.Uninstall();
+            await base.UninstallAsync();
+        }
+
+        /// <summary>
+        /// Gets a payment method description that will be displayed on checkout pages in the public store
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation</returns>
+        public async Task<string> GetPaymentMethodDescriptionAsync()
+        {
+            return await _localizationService.GetResourceAsync("Plugins.Payments.Crypto.PaymentMethodDescription");
         }
 
         #endregion
@@ -419,11 +467,6 @@ namespace Nop.Plugin.Payments.Crypto
         /// Gets a value indicating whether we should display a payment information page for this plugin
         /// </summary>
         public bool SkipPaymentInfo => false;
-
-        /// <summary>
-        /// Gets a payment method description that will be displayed on checkout pages in the public store
-        /// </summary>
-        public string PaymentMethodDescription => _localizationService.GetResource("Plugins.Payments.Crypto.PaymentMethodDescription");
 
         /// <summary>
         /// Gets a value indicating whether to hide this plugin on the widget list page in the admin area

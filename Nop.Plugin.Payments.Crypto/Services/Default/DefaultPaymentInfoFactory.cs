@@ -80,30 +80,30 @@ namespace Nop.Plugin.Payments.Crypto.Services
             if (string.IsNullOrWhiteSpace(_cryptoPaymentSettings.SecretKey))
                 return null;
 
-            var customer = _workContext.CurrentCustomer;
+            var customer = await _workContext.GetCurrentCustomerAsync();
             if (customer == null)
                 return null;
 
             var request = new CreatePaymentRequest();
 
             // set currency
-            if (_workContext.WorkingCurrency == null)
+            if (await _workContext.GetWorkingCurrencyAsync() == null)
                 return null;
 
-            var currency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+            var currency = await _currencyService.GetCurrencyByIdAsync(_currencySettings.PrimaryStoreCurrencyId);
             if (currency == null)
                 return null;
 
             request.Currency = currency.CurrencyCode;
 
             // set payment amount
-            var cart = _shoppingCartService.GetShoppingCart(customer, ShoppingCartType.ShoppingCart, _storeContext.CurrentStore.Id);
+            var cart = await _shoppingCartService.GetShoppingCartAsync(customer, ShoppingCartType.ShoppingCart, (await _storeContext.GetCurrentStoreAsync()).Id);
             if (cart?.Any() == true)
             {
-                var subTotal = _orderTotalCalculationService.GetShoppingCartTotal(cart);
+                var (shoppingCartTotal, _, _, _, _, _) = await _orderTotalCalculationService.GetShoppingCartTotalAsync(cart);
 
-                request.Amount = subTotal.HasValue
-                    ? (int)(subTotal.Value * 100)
+                request.Amount = shoppingCartTotal.HasValue
+                    ? (int)(shoppingCartTotal * 100)
                     : 0;
             }
 
@@ -121,7 +121,7 @@ namespace Nop.Plugin.Payments.Crypto.Services
                 {
                     var paymentId = paymentResponse.Id.ToString();
 
-                    processPaymentRequest.CustomValues.Add(_localizationService.GetResource("Plugins.Payments.Crypto.PaymentId"), paymentId);
+                    processPaymentRequest.CustomValues.Add(await _localizationService.GetResourceAsync("Plugins.Payments.Crypto.PaymentId"), paymentId);
                     httpContext.Session.Set(Defaults.PaymentRequestSessionKey, processPaymentRequest);
 
                     return new PaymentInfoModel
@@ -132,7 +132,7 @@ namespace Nop.Plugin.Payments.Crypto.Services
             }
             catch (ApiException exception)
             {
-                _logger.Error($"{Defaults.SystemName}: {exception.Message}", exception, customer);
+                await _logger.ErrorAsync($"{Defaults.SystemName}: {exception.Message}", exception, customer);
             }
 
             return null;

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Plugin.Payments.Crypto.Models;
 using Nop.Services.Configuration;
@@ -46,13 +47,14 @@ namespace Nop.Plugin.Payments.Crypto.Controllers
 
         #region Methods
 
-        public IActionResult Configure()
+        public async Task<IActionResult> Configure()
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();
 
-            var storeScope = _storeContext.ActiveStoreScopeConfiguration;
-            var settings = _settingService.LoadSetting<CryptoPaymentSettings>(storeScope);
+            //load settings for a chosen store scope
+            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
+            var settings = await _settingService.LoadSettingAsync<CryptoPaymentSettings>(storeScope);
 
             var model = new ConfigurationModel
             {
@@ -77,21 +79,21 @@ namespace Nop.Plugin.Payments.Crypto.Controllers
 
             if (storeScope > 0)
             {
-                model.UseSandbox_OverrideForStore = _settingService.SettingExists(settings, x => x.UseSandbox, storeScope);
-                model.AdditionalFee_OverrideForStore = _settingService.SettingExists(settings, x => x.AdditionalFee, storeScope);
-                model.AdditionalFeePercentage_OverrideForStore = _settingService.SettingExists(settings, x => x.AdditionalFeePercentage, storeScope);
+                model.UseSandbox_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.UseSandbox, storeScope);
+                model.AdditionalFee_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.AdditionalFee, storeScope);
+                model.AdditionalFeePercentage_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.AdditionalFeePercentage, storeScope);
 
                 if (model.UseSandbox)
                 {
-                    model.SandboxSecretKey_OverrideForStore = _settingService.SettingExists(settings, x => x.SecretKey, storeScope);
-                    model.SandboxPublishableKey_OverrideForStore = _settingService.SettingExists(settings, x => x.PublishableKey, storeScope);
-                    model.SandboxWebHookSignatureSecretKey_OverrideForStore = _settingService.SettingExists(settings, x => x.WebHookSignatureSecretKey, storeScope);
+                    model.SandboxSecretKey_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.SecretKey, storeScope);
+                    model.SandboxPublishableKey_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.PublishableKey, storeScope);
+                    model.SandboxWebHookSignatureSecretKey_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.WebHookSignatureSecretKey, storeScope);
                 }
                 else
                 {
-                    model.SecretKey_OverrideForStore = _settingService.SettingExists(settings, x => x.SecretKey, storeScope);
-                    model.PublishableKey_OverrideForStore = _settingService.SettingExists(settings, x => x.PublishableKey, storeScope);
-                    model.WebHookSignatureSecretKey_OverrideForStore = _settingService.SettingExists(settings, x => x.WebHookSignatureSecretKey, storeScope);
+                    model.SecretKey_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.SecretKey, storeScope);
+                    model.PublishableKey_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.PublishableKey, storeScope);
+                    model.WebHookSignatureSecretKey_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.WebHookSignatureSecretKey, storeScope);
                 }
             }
 
@@ -99,16 +101,17 @@ namespace Nop.Plugin.Payments.Crypto.Controllers
         }
 
         [HttpPost]
-        public IActionResult Configure(ConfigurationModel model)
+        public async Task<IActionResult> Configure(ConfigurationModel model)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();
 
             if (!ModelState.IsValid)
-                return Configure();
+                return await Configure();
 
-            var storeScope = _storeContext.ActiveStoreScopeConfiguration;
-            var settings = _settingService.LoadSetting<CryptoPaymentSettings>(storeScope);
+            //load settings for a chosen store scope
+            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
+            var settings = await _settingService.LoadSettingAsync<CryptoPaymentSettings>(storeScope);
 
             if (model.UseSandbox || (settings.UseSandbox && !model.UseSandbox_OverrideForStore && storeScope > 0))
             {
@@ -116,9 +119,9 @@ namespace Nop.Plugin.Payments.Crypto.Controllers
                 settings.PublishableKey = model.SandboxPublishableKey;
                 settings.WebHookSignatureSecretKey = model.SandboxWebHookSignatureSecretKey;
 
-                _settingService.SaveSettingOverridablePerStore(settings, setting => setting.SecretKey, model.SandboxSecretKey_OverrideForStore, storeScope, false);
-                _settingService.SaveSettingOverridablePerStore(settings, setting => setting.PublishableKey, model.SandboxPublishableKey_OverrideForStore, storeScope, false);
-                _settingService.SaveSettingOverridablePerStore(settings, setting => setting.WebHookSignatureSecretKey, model.SandboxWebHookSignatureSecretKey_OverrideForStore, storeScope, false);
+                await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.SecretKey, model.SandboxSecretKey_OverrideForStore, storeScope, false);
+                await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.PublishableKey, model.SandboxPublishableKey_OverrideForStore, storeScope, false);
+                await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.WebHookSignatureSecretKey, model.SandboxWebHookSignatureSecretKey_OverrideForStore, storeScope, false);
             }
             else
             {
@@ -126,21 +129,21 @@ namespace Nop.Plugin.Payments.Crypto.Controllers
                 settings.PublishableKey = model.PublishableKey;
                 settings.WebHookSignatureSecretKey = model.WebHookSignatureSecretKey;
 
-                _settingService.SaveSettingOverridablePerStore(settings, setting => setting.SecretKey, model.SecretKey_OverrideForStore, storeScope, false);
-                _settingService.SaveSettingOverridablePerStore(settings, setting => setting.PublishableKey, model.PublishableKey_OverrideForStore, storeScope, false);
-                _settingService.SaveSettingOverridablePerStore(settings, setting => setting.WebHookSignatureSecretKey, model.WebHookSignatureSecretKey_OverrideForStore, storeScope, false);
+                await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.SecretKey, model.SecretKey_OverrideForStore, storeScope, false);
+                await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.PublishableKey, model.PublishableKey_OverrideForStore, storeScope, false);
+                await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.WebHookSignatureSecretKey, model.WebHookSignatureSecretKey_OverrideForStore, storeScope, false);
             }
 
             settings.UseSandbox = model.UseSandbox;
             settings.AdditionalFee = model.AdditionalFee;
             settings.AdditionalFeePercentage = model.AdditionalFeePercentage;
 
-            _settingService.SaveSettingOverridablePerStore(settings, setting => setting.UseSandbox, model.UseSandbox_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(settings, setting => setting.AdditionalFee, model.AdditionalFee_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(settings, setting => setting.AdditionalFeePercentage, model.AdditionalFeePercentage_OverrideForStore, storeScope, false);
-            _settingService.ClearCache();
+            await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.UseSandbox, model.UseSandbox_OverrideForStore, storeScope, false);
+            await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.AdditionalFee, model.AdditionalFee_OverrideForStore, storeScope, false);
+            await _settingService.SaveSettingOverridablePerStoreAsync(settings, setting => setting.AdditionalFeePercentage, model.AdditionalFeePercentage_OverrideForStore, storeScope, false);
+            await _settingService.ClearCacheAsync();
 
-            _notificationService.SuccessNotification(_localizationService.GetResource("Admin.Plugins.Saved"));
+            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Plugins.Saved"));
 
             return RedirectToAction("Configure");
         }

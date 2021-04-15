@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Nop.Plugin.Payments.Crypto.Services;
 
 namespace Nop.Plugin.Payments.Crypto.Controllers
@@ -23,9 +24,9 @@ namespace Nop.Plugin.Payments.Crypto.Controllers
         #region Methods
 
         [HttpPost]
-        public IActionResult Handle()
+        public async Task<IActionResult> Handle()
         {
-            _webHookProcessor.ProcessAsync(HttpContext.Request);
+            await _webHookProcessor.ProcessAsync(HttpContext.Request);
             return Ok();
         }
 

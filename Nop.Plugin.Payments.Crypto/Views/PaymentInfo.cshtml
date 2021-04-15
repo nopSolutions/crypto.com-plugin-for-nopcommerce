@@ -29,7 +29,7 @@ else
             },
             onApprove: function (data, actions) {
                 $('.crypto-payment-container').html($('<span/>').text('@T("Plugins.Payments.Crypto.Payment.Successful")'))
-                $('input.payment-info-next-step-button').click();
+                $('button.payment-info-next-step-button').click();
             }
         }).render("#crypto-pay-button")
     </script>

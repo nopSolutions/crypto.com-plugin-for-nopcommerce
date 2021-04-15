@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a payment info model
     /// </summary>
-    public class PaymentInfoModel
+    public record PaymentInfoModel
     {
         /// <summary>
         /// Gets or sets the payment id

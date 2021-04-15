@@ -31,11 +31,11 @@
 @await Component.InvokeAsync("StoreScopeConfiguration")
 
 <form asp-controller="CryptoConfiguration" asp-action="Configure" method="post">
-    <div class="panel-group">
-        <div class="panel panel-default">
-            <div class="panel-body">
-                @Html.Raw(string.Format(T("Plugins.Payments.Crypto.Instructions").Text, Url.RouteUrl(Defaults.WebHooks.RouteName, null, webHelper.CurrentRequestProtocol)))
-                <div class="form-group">
+    <div class="cards-group">
+        <div class="card card-default">
+            <div class="card-body">
+                @Html.Raw(string.Format(T("Plugins.Payments.Crypto.Instructions").Text, Url.RouteUrl(Defaults.WebHooks.RouteName, null, webHelper.GetCurrentRequestProtocol())))
+                <div class="form-group row">
                     <div class="col-md-3">
                         <nop-override-store-checkbox asp-for="UseSandbox_OverrideForStore" asp-input="UseSandbox" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                         <nop-label asp-for="UseSandbox" />
@@ -46,7 +46,7 @@
                     </div>
                 </div>
                 <nop-nested-setting asp-for="UseSandbox">
-                    <div class="form-group" id="sandboxSecretKey">
+                    <div class="form-group row" id="sandboxSecretKey">
                         <div class="col-md-3">
                             <nop-override-store-checkbox asp-for="SandboxSecretKey_OverrideForStore" asp-input="SandboxSecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                             <nop-label asp-for="SandboxSecretKey" />
@@ -56,7 +56,7 @@
                             <span asp-validation-for="SandboxSecretKey"></span>
                         </div>
                     </div>
-                    <div class="form-group" id="sandboxPublishableKey">
+                    <div class="form-group row" id="sandboxPublishableKey">
                         <div class="col-md-3">
                             <nop-override-store-checkbox asp-for="SandboxPublishableKey_OverrideForStore" asp-input="SandboxPublishableKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                             <nop-label asp-for="SandboxPublishableKey" />
@@ -66,7 +66,7 @@
                             <span asp-validation-for="SandboxPublishableKey"></span>
                         </div>
                     </div>
-                    <div class="form-group" id="sandboxWebHookSignatureSecretKey">
+                    <div class="form-group row" id="sandboxWebHookSignatureSecretKey">
                         <div class="col-md-3">
                             <nop-override-store-checkbox asp-for="SandboxWebHookSignatureSecretKey_OverrideForStore" asp-input="SandboxWebHookSignatureSecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                             <nop-label asp-for="SandboxWebHookSignatureSecretKey" />
@@ -77,7 +77,7 @@
                         </div>
                     </div>
                 </nop-nested-setting>
-                <div class="form-group" id="liveSecretKey">
+                <div class="form-group row" id="liveSecretKey">
                     <div class="col-md-3">
                         <nop-override-store-checkbox asp-for="SecretKey_OverrideForStore" asp-input="SecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                         <nop-label asp-for="SecretKey" />
@@ -87,7 +87,7 @@
                         <span asp-validation-for="SecretKey"></span>
                     </div>
                 </div>
-                <div class="form-group" id="livePublishableKey">
+                <div class="form-group row" id="livePublishableKey">
                     <div class="col-md-3">
                         <nop-override-store-checkbox asp-for="PublishableKey_OverrideForStore" asp-input="PublishableKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                         <nop-label asp-for="PublishableKey" />
@@ -97,7 +97,7 @@
                         <span asp-validation-for="PublishableKey"></span>
                     </div>
                 </div>
-                <div class="form-group" id="liveWebHookSignatureSecretKey">
+                <div class="form-group row" id="liveWebHookSignatureSecretKey">
                     <div class="col-md-3">
                         <nop-override-store-checkbox asp-for="WebHookSignatureSecretKey_OverrideForStore" asp-input="WebHookSignatureSecretKey" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                         <nop-label asp-for="WebHookSignatureSecretKey" />
@@ -107,7 +107,7 @@
                         <span asp-validation-for="WebHookSignatureSecretKey"></span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <div class="col-md-3">
                         <nop-override-store-checkbox asp-for="AdditionalFee_OverrideForStore" asp-input="AdditionalFee" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                         <nop-label asp-for="AdditionalFee" />
@@ -117,7 +117,7 @@
                         <span asp-validation-for="AdditionalFee"></span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <div class="col-md-3">
                         <nop-override-store-checkbox asp-for="AdditionalFeePercentage_OverrideForStore" asp-input="AdditionalFeePercentage" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
                         <nop-label asp-for="AdditionalFeePercentage" />
@@ -127,9 +127,9 @@
                         <span asp-validation-for="AdditionalFeePercentage"></span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <div class="col-md-9 col-md-offset-3">
-                        <input type="submit" name="save" class="btn bg-primary" value="@T("Admin.Common.Save")" />
+                        <input type="submit" name="save" class="btn btn-primary" value="@T("Admin.Common.Save")" />
                     </div>
                 </div>
             </div>

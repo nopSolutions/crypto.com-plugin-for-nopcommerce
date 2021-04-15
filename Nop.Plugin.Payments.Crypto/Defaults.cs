@@ -45,7 +45,7 @@ namespace Nop.Plugin.Payments.Crypto
             /// <summary>
             /// Gets the user agent
             /// </summary>
-            public static string UserAgent => $"nopCommerce-{NopVersion.CurrentVersion}";
+            public static string UserAgent => $"nopCommerce-{NopVersion.CURRENT_VERSION}";
 
             /// <summary>
             /// Gets the default timeout

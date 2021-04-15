@@ -6,7 +6,7 @@ namespace Nop.Plugin.Payments.Crypto.Models
     /// <summary>
     /// Represents a plugin configuration model
     /// </summary>
-    public class ConfigurationModel : BaseNopModel
+    public record ConfigurationModel : BaseNopModel
     {
         #region Properties
 
