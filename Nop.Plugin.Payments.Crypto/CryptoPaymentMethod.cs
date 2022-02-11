@@ -16,6 +16,7 @@ using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
+using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Web.Framework.Infrastructure;
@@ -34,7 +35,7 @@ namespace Nop.Plugin.Payments.Crypto
         private readonly DefaultRefundHttpClient _refundApi;
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IGenericAttributeService _genericAttributeService;
-        private readonly IPaymentService _paymentService;
+        private readonly IOrderTotalCalculationService _orderTotalCalculationService;
         private readonly ILocalizationService _localizationService;
         private readonly ILogger _logger;
         private readonly ISettingService _settingService;
@@ -51,7 +52,7 @@ namespace Nop.Plugin.Payments.Crypto
             DefaultRefundHttpClient refundApi,
             IActionContextAccessor actionContextAccessor,
             IGenericAttributeService genericAttributeService,
-            IPaymentService paymentService,
+            IOrderTotalCalculationService orderTotalCalculationService,
             ILocalizationService localizationService,
             ILogger logger,
             ISettingService settingService,
@@ -63,7 +64,7 @@ namespace Nop.Plugin.Payments.Crypto
             _refundApi = refundApi;
             _actionContextAccessor = actionContextAccessor;
             _genericAttributeService = genericAttributeService;
-            _paymentService = paymentService;
+            _orderTotalCalculationService = orderTotalCalculationService;
             _localizationService = localizationService;
             _logger = logger;
             _settingService = settingService;
@@ -151,7 +152,8 @@ namespace Nop.Plugin.Payments.Crypto
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
-            return await _paymentService.CalculateAdditionalFeeAsync(cart, _cryptoPaymentSettings.AdditionalFee, _cryptoPaymentSettings.AdditionalFeePercentage);
+            return await _orderTotalCalculationService.CalculatePaymentAdditionalFeeAsync(cart,
+                _cryptoPaymentSettings.AdditionalFee, _cryptoPaymentSettings.AdditionalFeePercentage);
         }
 
         /// <summary>
@@ -356,7 +358,7 @@ namespace Nop.Plugin.Payments.Crypto
                 UseSandbox = true
             });
 
-            await _localizationService.AddLocaleResourceAsync(new Dictionary<string, string>
+            await _localizationService.AddOrUpdateLocaleResourceAsync(new Dictionary<string, string>
             {
                 ["Plugins.Payments.Crypto.Fields.AdditionalFee"] = "Additional fee",
                 ["Plugins.Payments.Crypto.Fields.AdditionalFee.Hint"] = "Enter additional fee to charge your customers.",

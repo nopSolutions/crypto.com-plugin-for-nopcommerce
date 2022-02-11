@@ -21,6 +21,10 @@ namespace Nop.Plugin.Payments.Crypto.Infrastructure
         {
             services.AddHttpClient<DefaultPaymentHttpClient>().WithProxy();
             services.AddHttpClient<DefaultRefundHttpClient>().WithProxy();
+
+            services.AddScoped<IPaymentInfoFactory, DefaultPaymentInfoFactory>();
+            services.AddScoped<IWebHookProcessor, DefaultWebHookProcessor>();
+            services.AddScoped<ICheckoutSdkScriptFactory, DefaultCheckoutSdkScriptFactory>();
         }
 
         /// <summary>
@@ -34,6 +38,6 @@ namespace Nop.Plugin.Payments.Crypto.Infrastructure
         /// <summary>
         /// Gets order of this startup configuration implementation
         /// </summary>
-        public int Order => 101;
+        public int Order => 3000;
     }
 }
